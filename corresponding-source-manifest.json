@@ -3,8 +3,8 @@
   "manifest_description": "Corresponding source manifest for GPL-covered toolchain binaries distributed with or used by macMAKE.",
   "source_release": {
     "repository": "mplsllc/macmake-gpl",
-    "release_tag": "v0.1.0-toolchain-sources",
-    "release_url": "https://github.com/mplsllc/macmake-gpl/releases/tag/v0.1.0-toolchain-sources"
+    "release_tag": "v0.1.1-toolchain-sources",
+    "release_url": "https://github.com/mplsllc/macmake-gpl/releases/tag/v0.1.1-toolchain-sources"
   },
   "components": [
     {
@@ -16,13 +16,14 @@
       "upstream_archive_filename": "gcc-12.2.0.tar.xz",
       "upstream_archive_sha256": "e549cf9cf3594a00e27b6589d4322d70e0720cdd213f39beb4181e06926230ff",
       "upstream_archive_url": "https://ftp.gnu.org/gnu/gcc/gcc-12.2.0/gcc-12.2.0.tar.xz",
-      "durable_archive_download_url": "https://github.com/mplsllc/macmake-gpl/releases/download/v0.1.0-toolchain-sources/gcc-12.2.0.tar.xz",
+      "durable_archive_download_url": "https://github.com/mplsllc/macmake-gpl/releases/download/v0.1.1-toolchain-sources/gcc-12.2.0.tar.xz",
       "patch_file": "gcc/gcc-12.2.0.patch",
       "patch_sha256": "bc37e4d7c7de86ccec1fb4bfc3c768d2e29cbfe68ace301fccfde01eb59b8c63",
       "build_script": "gcc/build-compiler.sh",
+      "build_invocation": "bash gcc/build-compiler.sh /path/to/build/root c,c++",
       "configure_arguments": [
         "--target=powerpc-unknown-macmake",
-        "--enable-languages=c",
+        "--enable-languages=c,c++",
         "--disable-bootstrap",
         "--disable-multilib",
         "--disable-libgcc",
@@ -42,10 +43,11 @@
       "upstream_archive_filename": "binutils-2.46.1.tar.xz",
       "upstream_archive_sha256": "e127a709cba24c76de8936cb7083dd768f28cd37eb010492e2f19b71eb1294e4",
       "upstream_archive_url": "https://ftp.gnu.org/gnu/binutils/binutils-2.46.1.tar.xz",
-      "durable_archive_download_url": "https://github.com/mplsllc/macmake-gpl/releases/download/v0.1.0-toolchain-sources/binutils-2.46.1.tar.xz",
+      "durable_archive_download_url": "https://github.com/mplsllc/macmake-gpl/releases/download/v0.1.1-toolchain-sources/binutils-2.46.1.tar.xz",
       "patch_file": null,
       "patch_sha256": null,
       "build_script": "binutils/build-binutils.sh",
+      "build_invocation": "bash binutils/build-binutils.sh /path/to/build/root",
       "configure_arguments": [
         "--target=powerpc-ibm-aix7.1.0.0",
         "--disable-nls",

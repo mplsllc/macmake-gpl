@@ -14,7 +14,7 @@ It is intended to provide the corresponding source required for GPL-covered comp
 
 To ensure complete, durable, and bit-identical reproducibility without committing hundreds of megabytes of third-party source into Git history, pristine upstream source tarballs are preserved in a durable release under our control:
 
-- **Durable Release Location:** [`v0.1.0-toolchain-sources`](https://github.com/mplsllc/macmake-gpl/releases/tag/v0.1.0-toolchain-sources)
+- **Canonical Source Release Location:** [`v0.1.1-toolchain-sources`](https://github.com/mplsllc/macmake-gpl/releases/tag/v0.1.1-toolchain-sources)
 - **Machine-Readable Distribution Manifest:** [`corresponding-source-manifest.json`](corresponding-source-manifest.json)
 
 ---
@@ -25,7 +25,7 @@ To ensure complete, durable, and bit-identical reproducibility without committin
 
 - **Component:** GNU Compiler Collection (GCC) 12.2.0
 - **Binary Role:** Classic PowerPC C/C++ cross-compiler frontend (`xgcc`, `cc1`, `cc1plus`)
-- **Pristine Upstream Source Archive:** [`gcc-12.2.0.tar.xz`](https://github.com/mplsllc/macmake-gpl/releases/download/v0.1.0-toolchain-sources/gcc-12.2.0.tar.xz) (also at `https://ftp.gnu.org/gnu/gcc/gcc-12.2.0/gcc-12.2.0.tar.xz`)
+- **Pristine Upstream Source Archive:** [`gcc-12.2.0.tar.xz`](https://github.com/mplsllc/macmake-gpl/releases/download/v0.1.1-toolchain-sources/gcc-12.2.0.tar.xz) (also at `https://ftp.gnu.org/gnu/gcc/gcc-12.2.0/gcc-12.2.0.tar.xz`)
 - **Pristine Archive SHA-256 Digest:** `e549cf9cf3594a00e27b6589d4322d70e0720cdd213f39beb4181e06926230ff`
 - **License:** GNU General Public License v3 or later ([`gcc/COPYING`](gcc/COPYING)).
   - *Runtime Library Exception Note:* GCC itself is licensed under GPLv3. The GCC Runtime Library Exception concerns runtime-library code linked into target executables produced by an eligible compilation process; however, this toolchain build specifically configures `--disable-libgcc` and `--disable-libstdcxx`. The Exception is not the reason macMAKE can execute the GCC compiler.
@@ -38,10 +38,10 @@ To ensure complete, durable, and bit-identical reproducibility without committin
   - Enables Darwin-compatible `#pragma options align=mac68k|power|reset`.
   - Disables AIX `collect2` shared-library constructor hooks.
 - **Build Script:** [`gcc/build-compiler.sh`](gcc/build-compiler.sh)
-- **Reproduction Instructions:**
+- **Reproduction Instructions (C and C++ frontends):**
   ```sh
   cd gcc
-  bash build-compiler.sh /path/to/build/root c
+  bash build-compiler.sh /path/to/build/root c,c++
   ```
 
 ---
@@ -50,7 +50,7 @@ To ensure complete, durable, and bit-identical reproducibility without committin
 
 - **Component:** GNU Binutils 2.46.1
 - **Binary Role:** Classic PowerPC assembler (`as`) and object dumper (`objdump`)
-- **Pristine Upstream Source Archive:** [`binutils-2.46.1.tar.xz`](https://github.com/mplsllc/macmake-gpl/releases/download/v0.1.0-toolchain-sources/binutils-2.46.1.tar.xz) (also at `https://ftp.gnu.org/gnu/binutils/binutils-2.46.1.tar.xz`)
+- **Pristine Upstream Source Archive:** [`binutils-2.46.1.tar.xz`](https://github.com/mplsllc/macmake-gpl/releases/download/v0.1.1-toolchain-sources/binutils-2.46.1.tar.xz) (also at `https://ftp.gnu.org/gnu/binutils/binutils-2.46.1.tar.xz`)
 - **Pristine Archive SHA-256 Digest:** `e127a709cba24c76de8936cb7083dd768f28cd37eb010492e2f19b71eb1294e4`
 - **License:** GNU General Public License v3 or later ([`binutils/COPYING`](binutils/COPYING))
 - **macMAKE Modifications:** None (unmodified upstream source configured for `powerpc-ibm-aix7.1.0.0`).
