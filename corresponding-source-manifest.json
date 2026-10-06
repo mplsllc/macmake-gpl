@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "manifest_description": "Corresponding source manifest for GPL-covered toolchain binaries distributed with or used by macMAKE.",
+  "source_release": {
+    "repository": "mplsllc/macmake-gpl",
+    "release_tag": "v0.1.0-toolchain-sources",
+    "release_url": "https://github.com/mplsllc/macmake-gpl/releases/tag/v0.1.0-toolchain-sources"
+  },
+  "components": [
+    {
+      "component_name": "gcc",
+      "binary_role": "Classic PowerPC C/C++ cross-compiler frontend (xgcc / cc1 / cc1plus)",
+      "target_triple": "powerpc-unknown-macmake",
+      "upstream_name": "GNU Compiler Collection (GCC)",
+      "upstream_version": "12.2.0",
+      "upstream_archive_filename": "gcc-12.2.0.tar.xz",
+      "upstream_archive_sha256": "e549cf9cf3594a00e27b6589d4322d70e0720cdd213f39beb4181e06926230ff",
+      "upstream_archive_url": "https://ftp.gnu.org/gnu/gcc/gcc-12.2.0/gcc-12.2.0.tar.xz",
+      "durable_archive_download_url": "https://github.com/mplsllc/macmake-gpl/releases/download/v0.1.0-toolchain-sources/gcc-12.2.0.tar.xz",
+      "patch_file": "gcc/gcc-12.2.0.patch",
+      "patch_sha256": "bc37e4d7c7de86ccec1fb4bfc3c768d2e29cbfe68ace301fccfde01eb59b8c63",
+      "build_script": "gcc/build-compiler.sh",
+      "configure_arguments": [
+        "--target=powerpc-unknown-macmake",
+        "--enable-languages=c",
+        "--disable-bootstrap",
+        "--disable-multilib",
+        "--disable-libgcc",
+        "--disable-libstdcxx",
+        "--without-headers"
+      ],
+      "license": "GPL-3.0-or-later",
+      "license_file": "gcc/COPYING",
+      "runtime_exception_note": "GCC is licensed under GPLv3. The GCC Runtime Library Exception applies to runtime library units in target executables when built with an eligible compilation process; however, this toolchain build configures --disable-libgcc and --disable-libstdcxx."
+    },
+    {
+      "component_name": "binutils",
+      "binary_role": "Classic PowerPC assembler and object inspector (as, objdump)",
+      "target_triple": "powerpc-ibm-aix7.1.0.0",
+      "upstream_name": "GNU Binutils",
+      "upstream_version": "2.46.1",
+      "upstream_archive_filename": "binutils-2.46.1.tar.xz",
+      "upstream_archive_sha256": "e127a709cba24c76de8936cb7083dd768f28cd37eb010492e2f19b71eb1294e4",
+      "upstream_archive_url": "https://ftp.gnu.org/gnu/binutils/binutils-2.46.1.tar.xz",
+      "durable_archive_download_url": "https://github.com/mplsllc/macmake-gpl/releases/download/v0.1.0-toolchain-sources/binutils-2.46.1.tar.xz",
+      "patch_file": null,
+      "patch_sha256": null,
+      "build_script": "binutils/build-binutils.sh",
+      "configure_arguments": [
+        "--target=powerpc-ibm-aix7.1.0.0",
+        "--disable-nls",
+        "--disable-werror",
+        "--disable-gold",
+        "--disable-ld",
+        "--disable-gdb",
+        "--disable-sim",
+        "--disable-gprofng",
+        "--enable-gas",
+        "--enable-binutils"
+      ],
+      "license": "GPL-3.0-or-later",
+      "license_file": "binutils/COPYING",
+      "runtime_exception_note": null
+    }
+  ]
+}
