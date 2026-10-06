@@ -1,0 +1,538 @@
+diff --git a/config.sub b/config.sub
+--- a/config.sub
++++ b/config.sub
+@@ -1723,7 +1723,7 @@
+ 	     | hpux* | unos* | osf* | luna* | dgux* | auroraux* | solaris* \
+ 	     | sym* |  plan9* | psp* | sim* | xray* | os68k* | v88r* \
+ 	     | hiux* | abug | nacl* | netware* | windows* \
+-	     | os9* | macos* | osx* | ios* \
++	     | os9* | macos* | macmake* | osx* | ios* \
+ 	     | mpw* | magic* | mmixware* | mon960* | lnews* \
+ 	     | amigaos* | amigados* | msdos* | newsos* | unicos* | aof* \
+ 	     | aos* | aros* | cloudabi* | sortix* | twizzler* \
+diff --git a/gcc/config.gcc b/gcc/config.gcc
+--- a/gcc/config.gcc
++++ b/gcc/config.gcc
+@@ -3119,6 +3119,15 @@
+ 	extra_objs="pru-pragma.o pru-passes.o"
+ 	use_gcc_stdint=wrap
+ 	;;
++powerpc-unknown-macmake*)
++	# Compiler-only stage using upstream AIX-family calling conventions.
++	tm_file="${tm_file} rs6000/aix.h rs6000/xcoff.h rs6000/macmake-stdint.h rs6000/macmake.h"
++	tmake_file="rs6000/t-ppcgas rs6000/t-ppccomm rs6000/t-macmake"
++	c_target_objs="${c_target_objs} macmake-c.o"
++	cxx_target_objs="${cxx_target_objs} macmake-c.o"
++	extra_options="${extra_options} rs6000/aix64.opt"
++	use_gcc_stdint=wrap
++	;;
+ rs6000-ibm-aix7.1.* | powerpc-ibm-aix7.1.*)
+ 	tmake_file="rs6000/t-aix52 t-slibgcc"
+ 	if test x$cpu_is_64bit = xyes; then
+diff --git a/gcc/config/rs6000/macmake.h b/gcc/config/rs6000/macmake.h
+--- /dev/null
++++ b/gcc/config/rs6000/macmake.h
+@@ -0,0 +1,64 @@
++/* macMAKE Classic PPC compiler target based on upstream AIX rs6000 ABI.
++   Copyright (C) 2026 macMAKE contributors.
++   SPDX-License-Identifier: GPL-3.0-or-later */
++
++#undef TARGET_OS_CPP_BUILTINS
++#define TARGET_OS_CPP_BUILTINS()             \
++  do                                         \
++    {                                        \
++      builtin_define ("__MACMAKE_CLASSIC_PPC__"); \
++      builtin_define ("__PPC__");          \
++      builtin_define ("__POWERPC__");      \
++      builtin_define ("__powerpc__");      \
++      builtin_assert ("cpu=powerpc");      \
++      builtin_assert ("machine=powerpc");  \
++    }                                        \
++  while (0)
++
++#define TARGET_MACMAKE_CLASSIC 1
++
++/* Register the Classic alignment pragma alongside standard rs6000 handlers. */
++extern void macmake_register_target_pragmas (void);
++#undef REGISTER_TARGET_PRAGMAS
++#define REGISTER_TARGET_PRAGMAS() do { \
++  c_register_pragma (0, "longcall", rs6000_pragma_longcall); \
++  macmake_register_target_pragmas (); \
++  targetm.target_option.pragma_parse = rs6000_pragma_target_parse; \
++  targetm.resolve_overloaded_builtin = altivec_resolve_overloaded_builtin; \
++  rs6000_target_modify_macros_ptr = rs6000_target_modify_macros; \
++} while (0)
++
++/* These candidate mechanics come from GCC's upstream AIX target. */
++#undef DEFAULT_ABI
++#define DEFAULT_ABI ABI_AIX
++#undef TARGET_HAS_TOC
++#define TARGET_HAS_TOC 1
++#undef FIXED_R2
++#define FIXED_R2 1
++#undef STACK_BOUNDARY
++#define STACK_BOUNDARY 128
++
++/* AIX's default field hook word-aligns doubles even in Apple's special
++   PowerPC leading-double structure. The Classic target needs its own
++   field/record policy while leaving the generic AIX target untouched. */
++extern unsigned int macmake_classic_adjust_field_align (tree, tree,
++                                                         unsigned int);
++extern unsigned int macmake_classic_round_type_align (tree, unsigned int,
++                                                       unsigned int);
++#undef ADJUST_FIELD_ALIGN
++#define ADJUST_FIELD_ALIGN(FIELD, TYPE, COMPUTED) \
++  macmake_classic_adjust_field_align (FIELD, TYPE, COMPUTED)
++#undef ROUND_TYPE_ALIGN
++#define ROUND_TYPE_ALIGN(TYPE, COMPUTED, SPECIFIED) \
++  macmake_classic_round_type_align (TYPE, COMPUTED, SPECIFIED)
++
++/* Compiler-only bootstrap must not silently invoke an AIX linker. */
++#undef LINK_SPEC
++#define LINK_SPEC ""
++
++/* AIX shared-library constructor wrappers do not belong to this target. */
++#undef COLLECT_SHARED_INIT_FUNC
++#undef COLLECT_SHARED_FINI_FUNC
++
++/* XCOFF debug records are the bootstrap's native debug transport. */
++#define PREFERRED_DEBUGGING_TYPE XCOFF_DEBUG
+diff --git a/gcc/config/rs6000/rs6000.cc b/gcc/config/rs6000/rs6000.cc
+--- a/gcc/config/rs6000/rs6000.cc
++++ b/gcc/config/rs6000/rs6000.cc
+@@ -25558,6 +25558,7 @@
+   rtx toc_restore = NULL_RTX;
+   rtx func_addr;
+   rtx abi_reg = NULL_RTX;
++  rtx cfm_tv_reg = NULL_RTX;
+   rtx call[5];
+   int n_call;
+   rtx insn;
+@@ -25643,8 +25644,14 @@
+ 	     Note that if we load the static chain, our "trampoline" need
+ 	     not have any executable code.  */
+ 
++	  /* macMAKE CFM requires r12 to point at the transition vector on
++	     entry, in addition to r2 naming the callee's direct data.  */
++	  func = force_reg (Pmode, func);
++#ifdef TARGET_MACMAKE_CLASSIC
++	  cfm_tv_reg = gen_rtx_REG (Pmode, 12);
++	  emit_move_insn (cfm_tv_reg, func);
++#endif
+ 	  /* Load up address of the actual function.  */
+-	  func = force_reg (Pmode, func);
+ 	  func_addr = gen_reg_rtx (Pmode);
+ 	  emit_move_insn (func_addr, gen_rtx_MEM (Pmode, func));
+ 
+@@ -25715,6 +25722,8 @@
+      as uses in CALL_INSN_FUNCTION_USAGE.  */
+   if (abi_reg)
+     use_reg (&CALL_INSN_FUNCTION_USAGE (insn), abi_reg);
++  if (cfm_tv_reg)
++    use_reg (&CALL_INSN_FUNCTION_USAGE (insn), cfm_tv_reg);
+ }
+ 
+ /* Expand code to perform a sibling call under the AIX or ELFv2 ABI.  */
+diff --git a/gcc/config/rs6000/rs6000-call.cc b/gcc/config/rs6000/rs6000-call.cc
+--- a/gcc/config/rs6000/rs6000-call.cc
++++ b/gcc/config/rs6000/rs6000-call.cc
+@@ -704,6 +704,14 @@
+ 			      int *punsignedp ATTRIBUTE_UNUSED,
+ 			      const_tree, int for_return ATTRIBUTE_UNUSED)
+ {
++#ifdef TARGET_MACMAKE_CLASSIC
++  /* Apple's Classic PPC ABI leaves the high bytes of subword scalar
++     results undefined. Keep return modes narrow so callers extract and
++     extend the declared low-order result. Arguments retain rs6000 rules.  */
++  if (for_return)
++    return mode;
++#endif
++
+   if (GET_MODE_CLASS (mode) == MODE_INT
+       && GET_MODE_SIZE (mode) < (TARGET_32BIT ? 4 : 8))
+     mode = TARGET_32BIT ? SImode : DImode;
+diff --git a/gcc/config/rs6000/rs6000.cc b/gcc/config/rs6000/rs6000.cc
+--- a/gcc/config/rs6000/rs6000.cc
++++ b/gcc/config/rs6000/rs6000.cc
+@@ -23532,10 +23532,16 @@
+ 	return rs6000_parallel_return (mode, count, SImode, GP_ARG_RETURN, 1);
+       }
+ 
++#ifdef TARGET_MACMAKE_CLASSIC
++  /* Narrow scalar results are valid in the low-order bytes of r3 only.  */
++  if (POINTER_TYPE_P (valtype))
++    mode = TARGET_32BIT ? SImode : DImode;
++#else
+   if ((INTEGRAL_TYPE_P (valtype)
+        && GET_MODE_BITSIZE (mode) < (TARGET_32BIT ? 32 : 64))
+       || POINTER_TYPE_P (valtype))
+     mode = TARGET_32BIT ? SImode : DImode;
++#endif
+ 
+  if (DECIMAL_FLOAT_MODE_P (mode) && TARGET_HARD_FLOAT)
+    /* _Decimal128 must use an even/odd register pair.  */
+diff --git a/gcc/config/rs6000/macmake-c.cc b/gcc/config/rs6000/macmake-c.cc
+new file mode 100644
+--- /dev/null
++++ b/gcc/config/rs6000/macmake-c.cc
+@@ -0,0 +1,87 @@
++/* Classic Macintosh PPC pragmas for the macMAKE GCC target.
++   Copyright (C) 2026 macMAKE contributors.
++   SPDX-License-Identifier: GPL-3.0-or-later */
++
++#define IN_TARGET_CODE 1
++
++#include "config.h"
++#include "system.h"
++#include "coretypes.h"
++#include "target.h"
++#include "c-family/c-common.h"
++#include "c-family/c-pragma.h"
++#include "stor-layout.h"
++#include "tm_p.h"
++
++struct macmake_field_alignment
++{
++  unsigned int alignment;
++  struct macmake_field_alignment *previous;
++};
++
++static struct macmake_field_alignment *macmake_field_alignment_stack;
++
++static void
++macmake_push_field_alignment (unsigned int alignment)
++{
++  struct macmake_field_alignment *entry = XNEW (struct macmake_field_alignment);
++  entry->alignment = maximum_field_alignment;
++  entry->previous = macmake_field_alignment_stack;
++  macmake_field_alignment_stack = entry;
++  maximum_field_alignment = alignment;
++}
++
++static void
++macmake_pop_field_alignment (void)
++{
++  if (macmake_field_alignment_stack != NULL)
++    {
++      struct macmake_field_alignment *entry = macmake_field_alignment_stack;
++      maximum_field_alignment = entry->alignment;
++      macmake_field_alignment_stack = entry->previous;
++      free (entry);
++    }
++  else
++    error ("too many %<#pragma options align=reset%>");
++}
++
++/* Match GCC Darwin's #pragma options align={mac68k|power|reset} semantics:
++   mac68k caps field alignment at two bytes, power and native select natural
++   target alignment, and reset restores the previous setting.  */
++static void
++macmake_pragma_options (cpp_reader *pfile ATTRIBUTE_UNUSED)
++{
++#define BAD(gmsgid) do { warning (OPT_Wpragmas, gmsgid); return; } while (0)
++  const char *argument;
++  tree token, extra;
++
++  if (pragma_lex (&token) != CPP_NAME)
++    BAD ("malformed %<#pragma options%>, ignoring");
++  argument = IDENTIFIER_POINTER (token);
++  if (strcmp (argument, "align") != 0)
++    BAD ("malformed %<#pragma options%>, ignoring");
++  if (pragma_lex (&token) != CPP_EQ)
++    BAD ("malformed %<#pragma options%>, ignoring");
++  if (pragma_lex (&token) != CPP_NAME)
++    BAD ("malformed %<#pragma options%>, ignoring");
++  if (pragma_lex (&extra) != CPP_EOF)
++    warning (OPT_Wpragmas, "junk at end of %<#pragma options%>");
++
++  argument = IDENTIFIER_POINTER (token);
++  if (strcmp (argument, "mac68k") == 0)
++    macmake_push_field_alignment (16);
++  else if (strcmp (argument, "power") == 0
++           || strcmp (argument, "native") == 0)
++    macmake_push_field_alignment (0);
++  else if (strcmp (argument, "reset") == 0)
++    macmake_pop_field_alignment ();
++  else
++    BAD ("malformed %<#pragma options align={mac68k|power|native|reset}%>, ignoring");
++#undef BAD
++}
++
++void
++macmake_register_target_pragmas (void)
++{
++  c_register_pragma (0, "options", macmake_pragma_options);
++}
+diff --git a/gcc/config/rs6000/rs6000.cc b/gcc/config/rs6000/rs6000.cc
+--- a/gcc/config/rs6000/rs6000.cc
++++ b/gcc/config/rs6000/rs6000.cc
+@@ -8088,9 +8088,99 @@ rs6000_special_round_type_align (tree type, unsigned int computed,
+ 
+   return align;
+ }
+ 
++/* Return the first scalar leaf used by the AIX alignment hooks.  */
++static tree
++macmake_first_embedded_leaf (tree type)
++{
++  while (type != NULL_TREE && TREE_CODE (type) == ARRAY_TYPE)
++    type = TREE_TYPE (type);
++
++  while (type != NULL_TREE && AGGREGATE_TYPE_P (type))
++    {
++      tree field = TYPE_FIELDS (type);
++
++      while (field != NULL_TREE
++             && (TREE_CODE (field) != FIELD_DECL
++                 || DECL_FIELD_ABI_IGNORED (field)))
++        field = DECL_CHAIN (field);
++
++      if (field == NULL_TREE || DECL_PACKED (field))
++        return NULL_TREE;
++
++      type = TREE_TYPE (field);
++      while (type != NULL_TREE && TREE_CODE (type) == ARRAY_TYPE)
++        type = TREE_TYPE (type);
++    }
++
++  return type;
++}
++
++static bool
++macmake_leading_double_record_p (tree type)
++{
++  tree leaf;
++
++  if (type == NULL_TREE || TREE_CODE (type) != RECORD_TYPE
++      || TYPE_PACKED (type))
++    return false;
++
++  leaf = macmake_first_embedded_leaf (type);
++  return (leaf != NULL_TREE && leaf != error_mark_node
++          && !AGGREGATE_TYPE_P (leaf)
++          && (TYPE_MODE (leaf) == DFmode || TYPE_MODE (leaf) == DCmode));
++}
++
++/* Use the Apple Classic PPC leading-double rule for fields in such a
++   record.  AIX otherwise caps each FP double field at word alignment,
++   producing the wrong offset for later doubles.  Keep all other AIX field
++   decisions intact until separately qualified.  */
++unsigned int
++macmake_classic_adjust_field_align (tree field, tree type,
++                                    unsigned int computed)
++{
++  if (TARGET_MACMAKE_CLASSIC && TARGET_ALIGN_NATURAL == 0
++      && field != NULL_TREE && TREE_CODE (field) == FIELD_DECL
++      && type != NULL_TREE && type != error_mark_node
++      && !TYPE_PACKED (type) && !DECL_PACKED (field))
++    {
++      tree context = DECL_CONTEXT (field);
++      tree leaf = macmake_first_embedded_leaf (type);
++
++      if (macmake_leading_double_record_p (context)
++          && leaf != NULL_TREE && leaf != error_mark_node
++          && !AGGREGATE_TYPE_P (leaf)
++          && (TYPE_MODE (leaf) == DFmode || TYPE_MODE (leaf) == DCmode))
++        return computed;
++    }
++
++  return rs6000_special_adjust_field_align (type, computed);
++}
++
++/* In a Classic mac68k pragma scope, maximum_field_alignment already caps
++   member alignment at 16 bits.  Do not let AIX's late record hook override
++   that composite alignment.  The uncapped Power mode retains the AIX record
++   rule, whose 8-byte rounding agrees with Apple's leading-double rule; the
++   field hook above supplies Apple's additional member alignment.  */
++unsigned int
++macmake_classic_round_type_align (tree type, unsigned int computed,
++                                  unsigned int specified)
++{
++  unsigned int align = MAX (computed, specified);
++
++  if (TARGET_MACMAKE_CLASSIC && maximum_field_alignment != 0)
++    return align;
++
++  if ((TREE_CODE (type) == RECORD_TYPE || TREE_CODE (type) == UNION_TYPE
++       || TREE_CODE (type) == QUAL_UNION_TYPE)
++      && TARGET_ALIGN_NATURAL == 0)
++    return rs6000_special_round_type_align (type, computed, specified);
++
++  return align;
++}
++
+ /* Darwin increases record alignment to the natural alignment of
+    the first field.  */
+ 
+ static unsigned int
+ darwin_rs6000_special_round_type_align (tree type, unsigned int computed,
+diff --git a/gcc/config/rs6000/t-macmake b/gcc/config/rs6000/t-macmake
+new file mode 100644
+--- /dev/null
++++ b/gcc/config/rs6000/t-macmake
+@@ -0,0 +1,3 @@
++macmake-c.o: $(srcdir)/config/rs6000/macmake-c.cc
++	$(COMPILE) $<
++	$(POSTCOMPILE)
+diff --git a/gcc/config/rs6000/macmake-stdint.h b/gcc/config/rs6000/macmake-stdint.h
+--- /dev/null
++++ b/gcc/config/rs6000/macmake-stdint.h
+@@ -0,0 +1,34 @@
++/* Integer header types for the 32-bit Classic Macintosh target.
++   Copyright (C) 2026 macMAKE contributors.
++   SPDX-License-Identifier: GPL-3.0-or-later */
++
++/* MSL cstdint and Universal Interfaces CGBase.h use long, rather than
++   int, for the 32-bit types. Equal width does not imply C type identity.
++   Define the complete header handshake here, independently of libc.
++   PTRDIFF_TYPE and SIZE_TYPE remain the rs6000 32-bit compiler types. */
++#define INT8_TYPE "signed char"
++#define UINT8_TYPE "unsigned char"
++#define INT16_TYPE "short int"
++#define UINT16_TYPE "short unsigned int"
++#define INT32_TYPE "long int"
++#define UINT32_TYPE "long unsigned int"
++#define INT64_TYPE "long long int"
++#define UINT64_TYPE "long long unsigned int"
++#define INT_LEAST8_TYPE INT8_TYPE
++#define UINT_LEAST8_TYPE UINT8_TYPE
++#define INT_LEAST16_TYPE INT16_TYPE
++#define UINT_LEAST16_TYPE UINT16_TYPE
++#define INT_LEAST32_TYPE INT32_TYPE
++#define UINT_LEAST32_TYPE UINT32_TYPE
++#define INT_LEAST64_TYPE INT64_TYPE
++#define UINT_LEAST64_TYPE UINT64_TYPE
++#define INT_FAST8_TYPE INT8_TYPE
++#define UINT_FAST8_TYPE UINT8_TYPE
++#define INT_FAST16_TYPE INT16_TYPE
++#define UINT_FAST16_TYPE UINT16_TYPE
++#define INT_FAST32_TYPE INT32_TYPE
++#define UINT_FAST32_TYPE UINT32_TYPE
++#define INT_FAST64_TYPE INT64_TYPE
++#define UINT_FAST64_TYPE UINT64_TYPE
++#define INTPTR_TYPE "long int"
++#define UINTPTR_TYPE "long unsigned int"
+
+--- a/gcc/c-family/c.opt
++++ b/gcc/c-family/c.opt
+@@ -1706,0 +1707,4 @@
++fpascal-strings
++C ObjC C++ Var(flag_pascal_strings) Init(0)
++Recognize CodeWarrior-style \\p Pascal string literals.
++
+
+--- a/gcc/c-family/c-lex.cc
++++ b/gcc/c-family/c-lex.cc
+@@ -1332,3 +1332,12 @@
+-  if ((translate
+-       ? cpp_interpret_string : cpp_interpret_string_notranslate)
+-      (parse_in, strs, concats + 1, &istr, type))
++  /* In Classic Macintosh compatibility mode, a leading \p in the
++     first narrow string token marks a Pascal string.  Remove that marker
++     before normal escape processing, then prepend the byte length below.
++     This keeps \p elsewhere an ordinary (and diagnosable) C escape.  */
++  bool pascal_string =
++    flag_pascal_strings && type == CPP_STRING && strs[0].len >= 4
++    && strs[0].text[0] == '"' && strs[0].text[1] == '\\'
++    && strs[0].text[2] == 'p';
++  cpp_string *pascal_tokens = NULL;
++  unsigned char *pascal_first_text = NULL;
++  const cpp_string *interpret_tokens = strs;
++  if (pascal_string)
+@@ -1335,0 +1345,36 @@
++      pascal_tokens = XNEWVEC (cpp_string, concats + 1);
++      memcpy (pascal_tokens, strs, sizeof (cpp_string) * (concats + 1));
++      pascal_first_text = XNEWVEC (unsigned char, strs[0].len - 2);
++      memcpy (pascal_first_text, strs[0].text, 1);
++      memcpy (pascal_first_text + 1, strs[0].text + 3, strs[0].len - 3);
++      pascal_tokens[0].text = pascal_first_text;
++      pascal_tokens[0].len = strs[0].len - 2;
++      interpret_tokens = pascal_tokens;
++    }
++
++  bool interpreted = (translate
++                      ? cpp_interpret_string : cpp_interpret_string_notranslate)
++    (parse_in, interpret_tokens, concats + 1, &istr, type);
++  if (pascal_tokens)
++    {
++      XDELETEVEC (pascal_tokens);
++      XDELETEVEC (pascal_first_text);
++    }
++  if (interpreted)
++    {
++      if (pascal_string)
++        {
++          size_t pascal_length = istr.len - 1;
++          if (pascal_length > 255)
++            {
++              cpp_error (parse_in, CPP_DL_ERROR,
++                         "Pascal string literal exceeds 255 bytes");
++              pascal_length = 0;
++            }
++          unsigned char *pascal_text = XNEWVEC (unsigned char, istr.len + 1);
++          pascal_text[0] = (unsigned char) pascal_length;
++          memcpy (pascal_text + 1, istr.text, istr.len);
++          free (CONST_CAST (unsigned char *, istr.text));
++          istr.text = pascal_text;
++          istr.len++;
++        }
+
+--- a/gcc/c/c-parser.cc
++++ b/gcc/c/c-parser.cc
+@@ -7413,4 +7413,13 @@
+-  if ((type == CPP_STRING || wide_ok)
+-      && ((translate
+-	  ? cpp_interpret_string : cpp_interpret_string_notranslate)
+-	  (parse_in, strs, count, &istr, type)))
++  /* CodeWarrior-compatible Pascal strings are introduced by \p in the
++     first narrow string token.  The token tree still contains the raw
++     spelling here, so remove the marker before cpp_interpret_string handles
++     C escapes, then prepend the encoded byte length to the interpreted data.
++     Keep this opt-in: ordinary C string literals are unchanged by default.  */
++  bool pascal_string =
++    flag_pascal_strings && type == CPP_STRING && count > 0 && strs[0].len >= 4
++    && strs[0].text[0] == '"' && strs[0].text[1] == '\\'
++    && strs[0].text[2] == 'p';
++  cpp_string *pascal_tokens = NULL;
++  unsigned char *pascal_first_text = NULL;
++  const cpp_string *interpret_tokens = strs;
++  if (pascal_string)
+@@ -7417,0 +7427,38 @@
++      pascal_tokens = XNEWVEC (cpp_string, count);
++      memcpy (pascal_tokens, strs, sizeof (cpp_string) * count);
++      pascal_first_text = XNEWVEC (unsigned char, strs[0].len - 2);
++      memcpy (pascal_first_text, strs[0].text, 1);
++      memcpy (pascal_first_text + 1, strs[0].text + 3, strs[0].len - 3);
++      pascal_tokens[0].text = pascal_first_text;
++      pascal_tokens[0].len = strs[0].len - 2;
++      interpret_tokens = pascal_tokens;
++    }
++
++  bool interpreted =
++    (type == CPP_STRING || wide_ok)
++    && ((translate
++	? cpp_interpret_string : cpp_interpret_string_notranslate)
++	(parse_in, interpret_tokens, count, &istr, type));
++  if (pascal_tokens)
++    {
++      XDELETEVEC (pascal_tokens);
++      XDELETEVEC (pascal_first_text);
++    }
++  if (interpreted)
++    {
++      if (pascal_string)
++        {
++          size_t pascal_length = istr.len - 1;
++          if (pascal_length > 255)
++            {
++              cpp_error (parse_in, CPP_DL_ERROR,
++                         "Pascal string literal exceeds 255 bytes");
++              pascal_length = 0;
++            }
++          unsigned char *pascal_text = XNEWVEC (unsigned char, istr.len + 1);
++          pascal_text[0] = (unsigned char) pascal_length;
++          memcpy (pascal_text + 1, istr.text, istr.len);
++          free (CONST_CAST (unsigned char *, istr.text));
++          istr.text = pascal_text;
++          istr.len++;
++        }

@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "recipe": "toolchains/classic-ppc/build-binutils.sh",
+  "clean_root_build": "PASS",
+  "source_url": "https://ftp.gnu.org/gnu/binutils/binutils-2.46.1.tar.xz",
+  "source_sha256": "e127a709cba24c76de8936cb7083dd768f28cd37eb010492e2f19b71eb1294e4",
+  "configure_target": "powerpc-ibm-aix7.1.0.0",
+  "configure_options": [
+    "--disable-nls",
+    "--disable-werror",
+    "--disable-gold",
+    "--disable-ld",
+    "--disable-gdb",
+    "--disable-sim",
+    "--disable-gprofng",
+    "--enable-gas",
+    "--enable-binutils"
+  ],
+  "patches": [],
+  "assembler": {
+    "identity": "GNU assembler (GNU Binutils) 2.46.1",
+    "sha256": "aa0907513f162e5d2e83babd628d611d838c71dde3a60cf8ee826b8787e0555a"
+  },
+  "objdump": {
+    "identity": "GNU objdump (GNU Binutils) 2.46.1",
+    "sha256": "99ef22e71671fa3208fdabf5d73bb4981cb5ad4b90929662c42e24c4aabac278"
+  },
+  "validation": {
+    "format": "BFD aixcoff-rs6000",
+    "retained_object_sha256": "b635603f6003f6b6562d0ab66c7afc95f318b312f49702904368f5a757e319fd",
+    "repeated_assembly_byte_identical": true
+  }
+}

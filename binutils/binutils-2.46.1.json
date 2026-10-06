@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "source": {
+    "url": "https://ftp.gnu.org/gnu/binutils/binutils-2.46.1.tar.xz",
+    "version": "2.46.1",
+    "sha256": "e127a709cba24c76de8936cb7083dd768f28cd37eb010492e2f19b71eb1294e4"
+  },
+  "target": "powerpc-ibm-aix7.1.0.0",
+  "object_format": "32-bit big-endian RS/6000 XCOFF (aixcoff-rs6000)",
+  "configure": [
+    "--target=powerpc-ibm-aix7.1.0.0",
+    "--disable-nls",
+    "--disable-werror",
+    "--disable-gold",
+    "--disable-ld",
+    "--disable-gdb",
+    "--disable-sim",
+    "--disable-gprofng",
+    "--enable-gas",
+    "--enable-binutils"
+  ],
+  "patches": [],
+  "tools": ["powerpc-ibm-aix7.1.0.0-as", "powerpc-ibm-aix7.1.0.0-objdump"]
+}
