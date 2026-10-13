@@ -3,12 +3,13 @@
   "manifest_description": "Corresponding-source manifest for the GCC, GNU Binutils, and GCC runtime components included with macMAKE v0.1.0 for Linux x86-64. This records source provenance and is not a legal opinion.",
   "source_release": {
     "repository": "mplsllc/macmake-gpl",
-    "status": "prepared-release-candidate",
+    "status": "source-release-candidate",
     "base_release_tag": "v0.1.1-toolchain-sources",
     "prepared_for": "macMAKE 0.1.0 Linux x86-64",
-    "publication_note": "This tag identifies the exact GCC patch, GCC runtime support source, and Binutils build inputs recorded for the macMAKE v0.1.0 binary. Keep the corresponding-source release available whenever the covered binaries are distributed. Final legal review remains outstanding.",
-    "proposed_tag": "macmake-v0.1.0-toolchain-sources",
-    "proposed_archive": "macmake-v0.1.0-toolchain-corresponding-source.tar.xz"
+    "publication_note": "This source identity contains the GCC patch, GCC runtime support source, and Binutils build inputs matching the macMAKE v0.1.0 binary manifest. Keep corresponding source accessible whenever the covered binaries are distributed. This manifest records provenance; it is not a legal opinion.",
+    "tag": "macmake-v0.1.0-toolchain-sources",
+    "archive": "macmake-v0.1.0-toolchain-corresponding-source.tar.xz",
+    "release_url": "https://github.com/mplsllc/macmake-gpl/releases/tag/macmake-v0.1.0-toolchain-sources"
   },
   "components": [
     {
@@ -112,10 +113,10 @@
   "binary_distribution": {
     "version": "0.1.0",
     "archive_filename": "macmake-v0.1.0-linux-x86_64.tar.xz",
-    "proposed_source_tag": "macmake-v0.1.0-toolchain-sources",
-    "proposed_source_release_url": "https://github.com/mplsllc/macmake-gpl/releases/tag/macmake-v0.1.0-toolchain-sources",
     "archive_sha256": null,
     "archive_sha256_note": "The binary archive embeds this corresponding-source archive hash. The binary SHA-256 is published in the binary release metadata; it is omitted here to avoid a source/binary hash cycle.",
-    "packaged_hashes_and_transform": "distribution-transform.json"
+    "packaged_hashes_and_transform": "distribution-transform.json",
+    "source_tag": "macmake-v0.1.0-toolchain-sources",
+    "source_release_url": "https://github.com/mplsllc/macmake-gpl/releases/tag/macmake-v0.1.0-toolchain-sources"
   }
 }
