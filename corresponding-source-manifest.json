@@ -1,53 +1,88 @@
 {
   "schema_version": 1,
-  "manifest_description": "Corresponding source manifest for GPL-covered toolchain binaries distributed with or used by macMAKE.",
+  "manifest_description": "Corresponding-source manifest for the GCC, GNU Binutils, and GCC runtime components included with macMAKE v0.1.0 for Linux x86-64. This records source provenance and is not a legal opinion.",
   "source_release": {
     "repository": "mplsllc/macmake-gpl",
-    "release_tag": "v0.1.1-toolchain-sources",
-    "release_url": "https://github.com/mplsllc/macmake-gpl/releases/tag/v0.1.1-toolchain-sources"
+    "status": "prepared-release-candidate",
+    "base_release_tag": "v0.1.1-toolchain-sources",
+    "prepared_for": "macMAKE 0.1.0 Linux x86-64",
+    "publication_note": "This tag identifies the exact GCC patch, GCC runtime support source, and Binutils build inputs recorded for the macMAKE v0.1.0 binary. Keep the corresponding-source release available whenever the covered binaries are distributed. Final legal review remains outstanding.",
+    "proposed_tag": "macmake-v0.1.0-toolchain-sources",
+    "proposed_archive": "macmake-v0.1.0-toolchain-corresponding-source.tar.xz"
   },
   "components": [
     {
       "component_name": "gcc",
-      "binary_role": "Classic PowerPC C/C++ cross-compiler frontend (xgcc / cc1 / cc1plus)",
+      "binary_role": "Linux x86-64 GCC 12.2.0 C compiler driver and cc1 for target powerpc-unknown-macmake",
       "target_triple": "powerpc-unknown-macmake",
       "upstream_name": "GNU Compiler Collection (GCC)",
       "upstream_version": "12.2.0",
       "upstream_archive_filename": "gcc-12.2.0.tar.xz",
       "upstream_archive_sha256": "e549cf9cf3594a00e27b6589d4322d70e0720cdd213f39beb4181e06926230ff",
       "upstream_archive_url": "https://ftp.gnu.org/gnu/gcc/gcc-12.2.0/gcc-12.2.0.tar.xz",
-      "durable_archive_download_url": "https://github.com/mplsllc/macmake-gpl/releases/download/v0.1.1-toolchain-sources/gcc-12.2.0.tar.xz",
       "patch_file": "gcc/gcc-12.2.0.patch",
-      "patch_sha256": "bc37e4d7c7de86ccec1fb4bfc3c768d2e29cbfe68ace301fccfde01eb59b8c63",
+      "patch_sha256": "20d025ecf9f4d83da5144ce5f03d9b9d382df53c986ab7152d9a2766910c16c9",
       "build_script": "gcc/build-compiler.sh",
-      "build_invocation": "bash gcc/build-compiler.sh /path/to/build/root c,c++",
+      "runtime_support_build_script": "gcc/build-runtime-support.sh",
+      "build_invocation": "MACMAKE_PPC_AS=/path/to/binutils/install/bin/powerpc-ibm-aix7.1.0.0-as bash gcc/build-compiler.sh /path/to/gcc-build-root c",
       "configure_arguments": [
         "--target=powerpc-unknown-macmake",
-        "--enable-languages=c,c++",
+        "--enable-languages=c",
         "--disable-bootstrap",
         "--disable-multilib",
-        "--disable-libgcc",
         "--disable-libstdcxx",
-        "--without-headers"
+        "--without-headers",
+        "--prefix=<build-root>/install",
+        "--with-build-time-tools=<build-root>/build/build-time-tools"
       ],
-      "license": "GPL-3.0-or-later",
-      "license_file": "gcc/COPYING",
-      "runtime_exception_note": "GCC is licensed under GPLv3. The GCC Runtime Library Exception applies to runtime library units in target executables when built with an eligible compilation process; however, this toolchain build configures --disable-libgcc and --disable-libstdcxx."
+      "build_targets": [
+        "all-gcc",
+        "install-gcc",
+        "all-target-libgcc",
+        "install-target-libgcc"
+      ],
+      "runtime_files": [
+        {
+          "name": "libgcc.a",
+          "source_scope": "GCC 12.2.0 libgcc sources plus gcc/gcc-12.2.0.patch",
+          "build_step": "all-target-libgcc",
+          "license": "GPL-3.0-or-later; GCC Runtime Library Exception applies to eligible runtime units as indicated by their source notices",
+          "license_files": [
+            "gcc/COPYING",
+            "gcc/COPYING.RUNTIME"
+          ]
+        },
+        {
+          "name": "crtdbase.o",
+          "source_file": "libgcc/config/rs6000/crtdbase.S",
+          "source_sha256": "f42eb862a84376380deedcc8d997d930ccac1fde83edb3f75d3c4d62cb6f6f91",
+          "build_script": "gcc/build-runtime-support.sh",
+          "license": "See the upstream file notice and gcc/COPYING.RUNTIME",
+          "license_files": [
+            "gcc/COPYING",
+            "gcc/COPYING.RUNTIME"
+          ]
+        }
+      ],
+      "license": "GPL-3.0-or-later for GCC; runtime-source exceptions are stated by the individual upstream files",
+      "license_files": [
+        "gcc/COPYING",
+        "gcc/COPYING.RUNTIME"
+      ]
     },
     {
       "component_name": "binutils",
-      "binary_role": "Classic PowerPC assembler and object inspector (as, objdump)",
+      "binary_role": "PowerPC XCOFF assembler and object archive/inspection tools",
       "target_triple": "powerpc-ibm-aix7.1.0.0",
       "upstream_name": "GNU Binutils",
       "upstream_version": "2.46.1",
       "upstream_archive_filename": "binutils-2.46.1.tar.xz",
       "upstream_archive_sha256": "e127a709cba24c76de8936cb7083dd768f28cd37eb010492e2f19b71eb1294e4",
       "upstream_archive_url": "https://ftp.gnu.org/gnu/binutils/binutils-2.46.1.tar.xz",
-      "durable_archive_download_url": "https://github.com/mplsllc/macmake-gpl/releases/download/v0.1.1-toolchain-sources/binutils-2.46.1.tar.xz",
       "patch_file": null,
       "patch_sha256": null,
       "build_script": "binutils/build-binutils.sh",
-      "build_invocation": "bash binutils/build-binutils.sh /path/to/build/root",
+      "build_invocation": "bash binutils/build-binutils.sh /path/to/binutils-build-root",
       "configure_arguments": [
         "--target=powerpc-ibm-aix7.1.0.0",
         "--disable-nls",
@@ -60,9 +95,27 @@
         "--enable-gas",
         "--enable-binutils"
       ],
+      "tools": [
+        "as",
+        "objdump",
+        "ar",
+        "ranlib",
+        "nm"
+      ],
       "license": "GPL-3.0-or-later",
-      "license_file": "binutils/COPYING",
-      "runtime_exception_note": null
+      "license_files": [
+        "binutils/COPYING",
+        "licenses/COPYING"
+      ]
     }
-  ]
+  ],
+  "binary_distribution": {
+    "version": "0.1.0",
+    "archive_filename": "macmake-v0.1.0-linux-x86_64.tar.xz",
+    "proposed_source_tag": "macmake-v0.1.0-toolchain-sources",
+    "proposed_source_release_url": "https://github.com/mplsllc/macmake-gpl/releases/tag/macmake-v0.1.0-toolchain-sources",
+    "archive_sha256": null,
+    "archive_sha256_note": "The binary archive embeds this corresponding-source archive hash. The binary SHA-256 is published in the binary release metadata; it is omitted here to avoid a source/binary hash cycle.",
+    "packaged_hashes_and_transform": "distribution-transform.json"
+  }
 }

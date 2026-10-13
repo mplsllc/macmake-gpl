@@ -20,5 +20,11 @@
     "--enable-binutils"
   ],
   "patches": [],
-  "tools": ["powerpc-ibm-aix7.1.0.0-as", "powerpc-ibm-aix7.1.0.0-objdump"]
+  "tools": [
+    "powerpc-ibm-aix7.1.0.0-as",
+    "powerpc-ibm-aix7.1.0.0-objdump",
+    "powerpc-ibm-aix7.1.0.0-ar",
+    "powerpc-ibm-aix7.1.0.0-ranlib",
+    "powerpc-ibm-aix7.1.0.0-nm"
+  ]
 }

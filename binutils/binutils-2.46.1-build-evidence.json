@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "recipe": "toolchains/classic-ppc/build-binutils.sh",
+  "recipe": "binutils/build-binutils.sh",
   "clean_root_build": "PASS",
   "source_url": "https://ftp.gnu.org/gnu/binutils/binutils-2.46.1.tar.xz",
   "source_sha256": "e127a709cba24c76de8936cb7083dd768f28cd37eb010492e2f19b71eb1294e4",
@@ -17,17 +17,37 @@
     "--enable-binutils"
   ],
   "patches": [],
-  "assembler": {
-    "identity": "GNU assembler (GNU Binutils) 2.46.1",
-    "sha256": "aa0907513f162e5d2e83babd628d611d838c71dde3a60cf8ee826b8787e0555a"
-  },
-  "objdump": {
-    "identity": "GNU objdump (GNU Binutils) 2.46.1",
-    "sha256": "99ef22e71671fa3208fdabf5d73bb4981cb5ad4b90929662c42e24c4aabac278"
+  "tools": {
+    "as": {
+      "path": "toolchain/bin/powerpc-ibm-aix7.1.0.0-as",
+      "identity": "GNU assembler (GNU Binutils) 2.46.1",
+      "sha256": "7ee7612f2e84a14e7292ca56b3c181c070ac4f08aa39a9662afc74d92b40e63b"
+    },
+    "objdump": {
+      "path": "toolchain/bin/powerpc-ibm-aix7.1.0.0-objdump",
+      "identity": "GNU objdump (GNU Binutils) 2.46.1",
+      "sha256": "9d87597c60af85f2d8a2ecde16d2c2a4419edb2538c3f3db7ea7cb702a192f88"
+    },
+    "ar": {
+      "path": "toolchain/bin/powerpc-ibm-aix7.1.0.0-ar",
+      "identity": "GNU ar (GNU Binutils) 2.46.1",
+      "sha256": "2c760740161796030014a9361b8bf692972fcfec27d01bd71d8e8255cb3af957"
+    },
+    "ranlib": {
+      "path": "toolchain/bin/powerpc-ibm-aix7.1.0.0-ranlib",
+      "identity": "GNU ranlib (GNU Binutils) 2.46.1",
+      "sha256": "d050a2f9e3fd2e7d5352619939dc6b914b0045f353b35adea0843ec2a1a0fc7a"
+    },
+    "nm": {
+      "path": "toolchain/bin/powerpc-ibm-aix7.1.0.0-nm",
+      "identity": "GNU nm (GNU Binutils) 2.46.1",
+      "sha256": "b55486e20d6039633a8e640346bdd6928fa588232675c5a1b82431a9ec54e684"
+    }
   },
   "validation": {
     "format": "BFD aixcoff-rs6000",
-    "retained_object_sha256": "b635603f6003f6b6562d0ab66c7afc95f318b312f49702904368f5a757e319fd",
-    "repeated_assembly_byte_identical": true
-  }
+    "candidate_build": "macMAKE v0.1.0-rc1 provider stage"
+  },
+  "distribution_transform_manifest": "../distribution-transform.json",
+  "tool_hash_stage": "installed build output before distribution strip"
 }

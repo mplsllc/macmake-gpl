@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "prepared_for": "macMAKE 0.1.0 Linux x86-64",
+  "status": "build provenance for the candidate toolchain; exact packaged inputs are verified by the distribution transform manifest",
+  "source": {
+    "gcc_archive_sha256": "e549cf9cf3594a00e27b6589d4322d70e0720cdd213f39beb4181e06926230ff",
+    "gcc_patch_sha256": "20d025ecf9f4d83da5144ce5f03d9b9d382df53c986ab7152d9a2766910c16c9",
+    "binutils_archive_sha256": "e127a709cba24c76de8936cb7083dd768f28cd37eb010492e2f19b71eb1294e4"
+  },
+  "gcc": {
+    "version": "12.2.0",
+    "target": "powerpc-unknown-macmake",
+    "configure_language": "c",
+    "patch_file": "gcc/gcc-12.2.0.patch",
+    "driver": {
+      "path": "toolchain/bin/powerpc-unknown-macmake-gcc",
+      "sha256": "5ecc6650fb4605ded2ad061b7fb3e401873ff5953970f207c292e2998929994d",
+      "hash_stage": "installed build output before distribution strip"
+    },
+    "cc1": {
+      "path": "toolchain/libexec/gcc/powerpc-unknown-macmake/12.2.0/cc1",
+      "sha256": "2e796906d5560aba8f0b63ff7896bc24262d63a2fe96e61829455c5c3bec9c15",
+      "hash_stage": "installed build output before distribution strip"
+    },
+    "libgcc_archive": {
+      "path": "toolchain/lib/gcc/powerpc-unknown-macmake/12.2.0/libgcc.a",
+      "sha256": "9204ff56371500f9aa92401623ec2a2877918396498b87ad40943980458928aa",
+      "size": 240582,
+      "build_target": "all-target-libgcc"
+    },
+    "crtdbase": {
+      "path": "toolchain/lib/gcc/powerpc-unknown-macmake/12.2.0/crtdbase.o",
+      "source_file": "libgcc/config/rs6000/crtdbase.S",
+      "source_sha256": "f42eb862a84376380deedcc8d997d930ccac1fde83edb3f75d3c4d62cb6f6f91",
+      "sha256": "01ab3b224d6906fa3f6a1fb9dd61d062a9685b6102d5ca02b9a3b69f38b5be4f",
+      "size": 307,
+      "license_files": [
+        "gcc/COPYING",
+        "gcc/COPYING.RUNTIME"
+      ]
+    }
+  },
+  "binutils": {
+    "version": "2.46.1",
+    "target": "powerpc-ibm-aix7.1.0.0",
+    "upstream_archive_sha256": "e127a709cba24c76de8936cb7083dd768f28cd37eb010492e2f19b71eb1294e4",
+    "tools": {
+      "as": {
+        "path": "toolchain/bin/powerpc-ibm-aix7.1.0.0-as",
+        "identity": "GNU assembler (GNU Binutils) 2.46.1",
+        "sha256": "7ee7612f2e84a14e7292ca56b3c181c070ac4f08aa39a9662afc74d92b40e63b"
+      },
+      "objdump": {
+        "path": "toolchain/bin/powerpc-ibm-aix7.1.0.0-objdump",
+        "identity": "GNU objdump (GNU Binutils) 2.46.1",
+        "sha256": "9d87597c60af85f2d8a2ecde16d2c2a4419edb2538c3f3db7ea7cb702a192f88"
+      },
+      "ar": {
+        "path": "toolchain/bin/powerpc-ibm-aix7.1.0.0-ar",
+        "identity": "GNU ar (GNU Binutils) 2.46.1",
+        "sha256": "2c760740161796030014a9361b8bf692972fcfec27d01bd71d8e8255cb3af957"
+      },
+      "ranlib": {
+        "path": "toolchain/bin/powerpc-ibm-aix7.1.0.0-ranlib",
+        "identity": "GNU ranlib (GNU Binutils) 2.46.1",
+        "sha256": "d050a2f9e3fd2e7d5352619939dc6b914b0045f353b35adea0843ec2a1a0fc7a"
+      },
+      "nm": {
+        "path": "toolchain/bin/powerpc-ibm-aix7.1.0.0-nm",
+        "identity": "GNU nm (GNU Binutils) 2.46.1",
+        "sha256": "b55486e20d6039633a8e640346bdd6928fa588232675c5a1b82431a9ec54e684"
+      }
+    }
+  },
+  "license_note": "Hashes identify source and binary inputs. Per-file source headers determine the scope of the GCC Runtime Library Exception. This provenance record is not a legal opinion.",
+  "distribution_transform_manifest": "../distribution-transform.json"
+}

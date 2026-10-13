@@ -32,7 +32,7 @@ diff --git a/gcc/config.gcc b/gcc/config.gcc
 diff --git a/gcc/config/rs6000/macmake.h b/gcc/config/rs6000/macmake.h
 --- /dev/null
 +++ b/gcc/config/rs6000/macmake.h
-@@ -0,0 +1,64 @@
+@@ -0,0 +1,80 @@
 +/* macMAKE Classic PPC compiler target based on upstream AIX rs6000 ABI.
 +   Copyright (C) 2026 macMAKE contributors.
 +   SPDX-License-Identifier: GPL-3.0-or-later */
@@ -51,6 +51,22 @@ diff --git a/gcc/config/rs6000/macmake.h b/gcc/config/rs6000/macmake.h
 +  while (0)
 +
 +#define TARGET_MACMAKE_CLASSIC 1
++
++/* Classic PPC starts at the 601 instruction set. Keep GCC's own assembler
++   call consistent with macMAKE's explicit -m601 object assembly. */
++#undef ASM_DEFAULT_SPEC
++#define ASM_DEFAULT_SPEC "-m601"
++#undef ASM_SPEC
++#define ASM_SPEC "%{maix64:-a64;: -a32} %(asm_cpu)"
++
++/* The pinned XCOFF assembler supports weak externals. The cross-target GCC
++   configure probe cannot run this target assembler during bootstrap, so make
++   the measured target capability explicit for inline/template definitions. */
++#undef RS6000_WEAK
++#define RS6000_WEAK 1
++#undef ASM_WEAKEN_DECL
++#define ASM_WEAKEN_DECL(FILE, DECL, NAME, VAL) \
++  rs6000_asm_weaken_decl ((FILE), (DECL), (NAME), (VAL))
 +
 +/* Register the Classic alignment pragma alongside standard rs6000 handlers. */
 +extern void macmake_register_target_pragmas (void);
@@ -413,6 +429,32 @@ diff --git a/gcc/config/rs6000/macmake-stdint.h b/gcc/config/rs6000/macmake-stdi
 +#define INTPTR_TYPE "long int"
 +#define UINTPTR_TYPE "long unsigned int"
 
+diff --git a/gcc/c-family/c.opt b/gcc/c-family/c.opt
+--- a/gcc/c-family/c.opt
++++ b/gcc/c-family/c.opt
+@@ -2007,3 +2007,7 @@
++fcodewarrior-pointer-integer-casts
++C++ ObjC++ Var(flag_codewarrior_pointer_integer_casts) Init(0)
++Allow explicit pointer-to-integer handle casts that narrow the pointer value.
++
+ fplan9-extensions
+ C ObjC Var(flag_plan9_extensions)
+ Enable Plan 9 language extensions.
+
+diff --git a/gcc/cp/typeck.cc b/gcc/cp/typeck.cc
+--- a/gcc/cp/typeck.cc
++++ b/gcc/cp/typeck.cc
+@@ -8420,7 +8420,8 @@ build_reinterpret_cast_1 (location_t loc, tree type, tree expr,
+   if (CP_INTEGRAL_TYPE_P (type)
+       && (TYPE_PTR_P (intype) || NULLPTR_TYPE_P (intype)))
+     {
+-      if (TYPE_PRECISION (type) < TYPE_PRECISION (intype))
++      if (TYPE_PRECISION (type) < TYPE_PRECISION (intype)
++          && !flag_codewarrior_pointer_integer_casts)
+         {
+           if (complain & tf_error)
+             permerror (loc, "cast from %qH to %qI loses precision",
+
 --- a/gcc/c-family/c.opt
 +++ b/gcc/c-family/c.opt
 @@ -1706,0 +1707,4 @@
@@ -536,3 +578,56 @@ diff --git a/gcc/config/rs6000/macmake-stdint.h b/gcc/config/rs6000/macmake-stdi
 +          istr.text = pascal_text;
 +          istr.len++;
 +        }
+
+--- a/gcc/c-family/c.opt
++++ b/gcc/c-family/c.opt
+@@ -2002,0 +2003,4 @@
++fcodewarrior-legacy-scope
++C++ ObjC++ Var(flag_codewarrior_legacy_scope) Init(0)
++Expose namespace friends and allow case jumps past scalar initialization in legacy CodeWarrior sources.
++
+
+--- a/gcc/cp/friend.cc
++++ b/gcc/cp/friend.cc
+@@ -632 +632,6 @@
+-	      decl = pushdecl_namespace_level (decl, /*hiding=*/true);
++	      /* Legacy CodeWarrior exposes namespace friend declarations to
++		 ordinary lookup, including taking their address before a
++		 matching namespace definition.  Templates retain their
++		 normal dependent-friend handling above.  */
++	      decl = pushdecl_namespace_level
++		(decl, /*hiding=*/!flag_codewarrior_legacy_scope);
+
+--- a/gcc/cp/decl.cc
++++ b/gcc/cp/decl.cc
+@@ -3509,0 +3510,10 @@
++	  /* The Classic CodeWarrior dialect accepts a switch dispatch
++	     that bypasses an ordinary scalar initializer.  Its storage
++	     remains in scope; the initializer still executes only along
++	     the normal statement path.  Do not relax goto, class/array
++	     lifetimes, EH scopes, or variably modified types.  */
++	  if (problem && !decl && flag_codewarrior_legacy_scope
++	      && VAR_P (new_decls)
++	      && SCALAR_TYPE_P (TREE_TYPE (new_decls))
++	      && !variably_modified_type_p (TREE_TYPE (new_decls), NULL_TREE))
++	    continue;
+
+--- a/libgcc/config.host
++++ b/libgcc/config.host
+@@ -1329,0 +1330,6 @@
++powerpc-unknown-macmake*)
++	# The Classic C profile needs arithmetic helpers; the Mac runtime owns
++	# startup and this target does not provide the AIX exception runtime.
++	md_unwind_header=no-unwind.h
++	tmake_file="t-fdpbit rs6000/t-ppc64-fp rs6000/t-ibm-ldouble rs6000/t-macmake"
++	;;
+
+--- /dev/null
++++ b/libgcc/config/rs6000/t-macmake
+@@ -0,0 +1,6 @@
++# macMAKE's supported Classic PowerPC target is C-only. The system and MSL
++# supply application startup and process services. Omit generic DWARF/SJLJ
++# unwinding, AIX C++ destructor registration, and emulated TLS support.
++override LIB2ADDEH =
++override LIB2ADDEHSTATIC =
++override LIB2ADDEHSHARED =

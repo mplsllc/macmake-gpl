@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "binary_version": "0.1.0",
+  "binary_archive": "macmake-v0.1.0-linux-x86_64.tar.xz",
+  "binary_archive_sha256": null,
+  "transformation": {
+    "command": "strip --strip-unneeded",
+    "applied_to": [
+      "macmake-v0.1.0/toolchain/bin/powerpc-unknown-macmake-gcc",
+      "macmake-v0.1.0/toolchain/libexec/gcc/powerpc-unknown-macmake/12.2.0/cc1",
+      "macmake-v0.1.0/toolchain/bin/powerpc-ibm-aix7.1.0.0-as",
+      "macmake-v0.1.0/toolchain/bin/powerpc-ibm-aix7.1.0.0-objdump",
+      "macmake-v0.1.0/toolchain/bin/powerpc-ibm-aix7.1.0.0-ar",
+      "macmake-v0.1.0/toolchain/bin/powerpc-ibm-aix7.1.0.0-ranlib",
+      "macmake-v0.1.0/toolchain/bin/powerpc-ibm-aix7.1.0.0-nm"
+    ]
+  },
+  "packaged_file_sha256": {
+    "toolchain/bin/powerpc-unknown-macmake-gcc": "193ef806abcf8af4af363dbcee3949f7f0bc50eb748a88e48e964a885028c1ca",
+    "toolchain/libexec/gcc/powerpc-unknown-macmake/12.2.0/cc1": "c5a98f96828aa865efa925d06b105419f828f9eed91c9b937a75d41f51fbacff",
+    "toolchain/bin/powerpc-ibm-aix7.1.0.0-as": "00b06fb5a7f5a3118d0c695482a4d61af161430b8ac24135b83dc19eb4a857de",
+    "toolchain/bin/powerpc-ibm-aix7.1.0.0-objdump": "8f07c74f2cef9116cf082c8b30ee189eb555f9f37d3ce0a106387f3ad8131e2f",
+    "toolchain/bin/powerpc-ibm-aix7.1.0.0-ar": "f4138efe9be4ae01e4119a25f4558ab4d1728504e1e9e1a6fa985329650a8d78",
+    "toolchain/bin/powerpc-ibm-aix7.1.0.0-ranlib": "cfec6fa08f54d3eb4c5161fdff1068ab4e5fc3de8d59e02561b3b821ebff76f5",
+    "toolchain/bin/powerpc-ibm-aix7.1.0.0-nm": "46a04df57c1f09136a1ed47924f2419702fd660c1154381789c3749064182577",
+    "toolchain/lib/gcc/powerpc-unknown-macmake/12.2.0/libgcc.a": "9204ff56371500f9aa92401623ec2a2877918396498b87ad40943980458928aa",
+    "toolchain/lib/gcc/powerpc-unknown-macmake/12.2.0/crtdbase.o": "01ab3b224d6906fa3f6a1fb9dd61d062a9685b6102d5ca02b9a3b69f38b5be4f"
+  },
+  "note": "The GCC and Binutils build-evidence manifests record installed build-output hashes before distribution stripping. This file records the exact packaged hashes after the listed strip step. The target runtime files are copied unchanged.",
+  "binary_archive_sha256_note": "The final binary archive checksum is recorded in its own release manifest and detached checksum; it is omitted here to avoid a source/binary hash cycle."
+}
