@@ -1,0 +1,53 @@
+{
+  "schema_version": "1.0.0",
+  "source_release_id": "macmake-v0.1.1-rc4-toolchain-sources",
+  "status": "staged-not-published",
+  "binary_candidate": "macmake-v0.1.1-rc4-linux-x86_64.tar.xz",
+  "product_version": "0.1.1",
+  "coverage": [
+    {
+      "name": "GNU GCC PowerPC toolchain",
+      "source": "base/macmake-v0.1.0-toolchain-corresponding-source.tar.xz!/upstream/gcc-12.2.0.tar.xz",
+      "upstream_version": "12.2.0",
+      "upstream_sha256": "e549cf9cf3594a00e27b6589d4322d70e0720cdd213f39beb4181e06926230ff",
+      "modifications": "PowerPC target patch and recipes retained from the v0.1.0 corresponding-source bundle"
+    },
+    {
+      "name": "GNU Binutils PowerPC toolchain",
+      "source": "base/macmake-v0.1.0-toolchain-corresponding-source.tar.xz!/upstream/binutils-2.46.1.tar.xz",
+      "upstream_version": "2.46.1",
+      "upstream_sha256": "e127a709cba24c76de8936cb7083dd768f28cd37eb010492e2f19b71eb1294e4",
+      "modifications": "No upstream source patch; PowerPC build configuration is retained in the v0.1.0 source bundle"
+    },
+    {
+      "name": "GNU GCC native M68000 toolchain and libgcc",
+      "source": "base/macmake-v0.1.0-toolchain-corresponding-source.tar.xz!/upstream/gcc-12.2.0.tar.xz",
+      "upstream_version": "12.2.0",
+      "upstream_sha256": "e549cf9cf3594a00e27b6589d4322d70e0720cdd213f39beb4181e06926230ff",
+      "target": "m68k-unknown-elf; M68000 baseline",
+      "modifications": "No GCC source patch; build configuration and scripts are supplied under m68k/",
+      "runtime_archive_sha256": "8ec2269f540f791e2429441bd5633ac7bd71fa7f964e61ed79e356d55b63cacd",
+      "runtime_exception_note": "Per-file upstream notices control whether the GCC Runtime Library Exception applies."
+    },
+    {
+      "name": "GNU Binutils native M68000 toolchain",
+      "source": "base/macmake-v0.1.0-toolchain-corresponding-source.tar.xz!/upstream/binutils-2.46.1.tar.xz",
+      "upstream_version": "2.46.1",
+      "upstream_sha256": "e127a709cba24c76de8936cb7083dd768f28cd37eb010492e2f19b71eb1294e4",
+      "target": "m68k-unknown-elf",
+      "modifications": "No upstream source patch; target configuration and build script are supplied under m68k/"
+    }
+  ],
+  "required_materials": [
+    "Complete upstream GCC 12.2.0 and Binutils 2.46.1 archives from the nested base source bundle",
+    "PowerPC patch, build/configuration procedures, runtime support sources and notices from the base source bundle",
+    "m68k/build-binutils.sh",
+    "m68k/build-compiler.sh",
+    "m68k/toolchain-config.json",
+    "GNU source copyright/license texts from the base source bundle",
+    "SHA256SUMS and source provenance records"
+  ],
+  "proprietary_macmake_source_included": false,
+  "sdk_or_rom_material_included": false,
+  "publication_note": "This source archive is prepared but unpublished. Its checksum is recorded in the RC4 binary candidate manifest after archive assembly; it does not contain a self-referential binary archive hash."
+}

@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "component_set": "macMAKE v0.1.1-rc4 native M68000 provider",
+  "target_triple": "m68k-unknown-elf",
+  "instruction_baseline": "M68000",
+  "compiler": {
+    "name": "GNU GCC",
+    "version": "12.2.0",
+    "upstream_archive": "base/macmake-v0.1.0-toolchain-corresponding-source.tar.xz!/upstream/gcc-12.2.0.tar.xz",
+    "upstream_archive_sha256": "e549cf9cf3594a00e27b6589d4322d70e0720cdd213f39beb4181e06926230ff",
+    "patches": [],
+    "build_script": "m68k/build-compiler.sh",
+    "build_targets": ["all-gcc", "all-target-libgcc"],
+    "install_targets": ["install-gcc", "install-target-libgcc"],
+    "configure_options": [
+      "--target=m68k-unknown-elf",
+      "--with-arch=m68k",
+      "--with-cpu=m68000",
+      "--enable-languages=c",
+      "--disable-bootstrap",
+      "--disable-multilib",
+      "--without-headers",
+      "--with-newlib",
+      "--disable-nls",
+      "--disable-werror",
+      "--disable-libssp",
+      "--disable-libquadmath",
+      "--disable-libgomp",
+      "--disable-libatomic",
+      "--disable-libsanitizer",
+      "--disable-libstdcxx",
+      "--disable-threads",
+      "--disable-shared",
+      "--disable-lto"
+    ],
+    "distributed_runtime": {
+      "file": "lib/gcc/m68k-unknown-elf/12.2.0/libgcc.a",
+      "sha256": "8ec2269f540f791e2429441bd5633ac7bd71fa7f964e61ed79e356d55b63cacd",
+      "source_scope": "GCC 12.2.0 upstream source archive; individual file notices determine applicable runtime exception"
+    }
+  },
+  "binutils": {
+    "name": "GNU Binutils",
+    "version": "2.46.1",
+    "upstream_archive": "base/macmake-v0.1.0-toolchain-corresponding-source.tar.xz!/upstream/binutils-2.46.1.tar.xz",
+    "upstream_archive_sha256": "e127a709cba24c76de8936cb7083dd768f28cd37eb010492e2f19b71eb1294e4",
+    "patches": [],
+    "build_script": "m68k/build-binutils.sh",
+    "configure_options": [
+      "--target=m68k-unknown-elf",
+      "--disable-nls",
+      "--disable-werror",
+      "--disable-gdb",
+      "--disable-gprofng"
+    ]
+  },
+  "source_tree_hashes": {
+    "m68k/README.md": "7002cc7db7d684464a5a7e3c5183db5788a032565a74a6ebfdb86af66bc1f676",
+    "m68k/build-binutils.sh": "559da4b75e22f72cf0564d036963dd124fc17010487b156668113b20130fe547",
+    "m68k/build-compiler.sh": "239813f6f1b396447429de8e83f878ae770072def2a3f13c6ba705258142effc"
+  },
+  "binary_identity": {
+    "compiler_sha256": "7f39d24cd44f2d9115236b7bea4d6a506c509141b78828e67a0cc4fadae9e94c",
+    "compiler_frontend_sha256": "54aec4212e5be1a3596ba456b888dd1c9f4e8678f844a9f8558f1d67fac066e5",
+    "assembler_sha256": "fe33ef15c89f18f8cbcd0cf47f62c5f7b71fe33dac229af8950ef5f913f311ec",
+    "linker_sha256": "dd192e731bcecea071614d057344b4fb0cb4e96f85b032c1ca7d0fc3be17a329",
+    "objcopy_sha256": "07e1fb98a762e561ddb70cb6414ad87ae44f3601f35dc90c682a2c5726c269fe",
+    "readelf_sha256": "a0ffa983a90ab0d47dd0778087ba50ab6b64df4c073c38afd43be44c7be220b9",
+    "libgcc_sha256": "8ec2269f540f791e2429441bd5633ac7bd71fa7f964e61ed79e356d55b63cacd"
+  }
+}
