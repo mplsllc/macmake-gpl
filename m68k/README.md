@@ -7,8 +7,8 @@ and hashes of the distributed GNU executables and `libgcc.a`.
 
 The complete GCC 12.2.0 and Binutils 2.46.1 source archives are included
 unchanged in the nested base source archive named by
-`releases/v0.1.1-rc4/SOURCE-MANIFEST.json`. Verify their SHA-256 values against
-`toolchain-config.json`, then extract the source trees. No M68000-specific
+the bundle's top-level `SOURCE-MANIFEST.json`. Verify their SHA-256 values
+against `toolchain-config.json`, then extract the source trees. No M68000-specific
 patch is applied to either upstream source tree.
 
 Build Binutils for `m68k-unknown-elf`:
